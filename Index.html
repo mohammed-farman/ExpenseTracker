@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f5f5fa">
+<title>Pocketly — Money Tracker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:#f5f5fa;color:#20212b;
+  padding:22px 16px 45px;
+}
+.app{max-width:480px;margin:auto}
+header{display:flex;justify-content:space-between;align-items:center;margin:12px 0 25px}
+h1{font-size:27px;letter-spacing:-1px}
+.sub{color:#9293a2;font-size:13px;margin-top:4px}
+.pill{background:white;padding:9px 13px;border-radius:30px;font-size:12px;color:#777}
+.card{
+  background:linear-gradient(135deg,#242b49,#454c77);
+  color:white;border-radius:25px;padding:25px;
+  box-shadow:0 12px 30px #252b4930;
+}
+.card small{color:#c6c9dd}
+.balance{font-size:36px;font-weight:750;margin:12px 0 22px;letter-spacing:-1px}
+.stats{display:flex;justify-content:space-between;gap:12px}
+.stats div{font-size:13px;color:#d4d6e6}
+.stats strong{display:block;color:white;font-size:17px;margin-top:6px}
+.section{margin-top:27px}
+.heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px}
+h2{font-size:17px}
+.muted{font-size:12px;color:#9293a2}
+.box{
+  background:white;border-radius:20px;padding:19px;
+  margin-bottom:13px;box-shadow:0 5px 20px #20212b08;
+}
+label{display:block;font-size:12px;color:#77798b;margin-bottom:7px}
+input,select{
+  width:100%;padding:13px;border:1px solid #eeeef3;
+  border-radius:12px;background:#fafafd;font-size:14px;
+  outline:none;color:#242536;
+}
+input:focus,select:focus{border-color:#858cc7}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{margin-bottom:14px}
+button{
+  border:0;border-radius:13px;padding:13px 17px;
+  background:#454c77;color:white;font-weight:650;
+  cursor:pointer;font-size:14px;
+}
+button:active{transform:scale(.98)}
+.full{width:100%}
+.savings{background:#eff8f2;border-radius:19px;padding:19px}
+.savings h3{font-size:15px;color:#277448}
+.savings .amount{font-size:29px;font-weight:750;color:#216b40;margin:9px 0}
+.savings p{font-size:12px;color:#598168;line-height:1.6}
+.bar{height:9px;background:#d9e9de;border-radius:20px;margin:14px 0;overflow:hidden}
+.bar span{height:100%;display:block;background:#4ca878;border-radius:20px;width:0%}
+.savingrow{display:flex;justify-content:space-between;font-size:12px;color:#52715e}
+.history-item{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #f0f0f4}
+.history-item:last-child{border:0}
+.item-left{display:flex;gap:11px;align-items:center}
+.emoji{width:40px;height:40px;background:#f4f4fa;border-radius:13px;display:grid;place-items:center;font-size:19px}
+.item-left strong{font-size:13px}
+.item-left small{display:block;color:#999;font-size:11px;margin-top:4px}
+.money{font-weight:700;font-size:14px}
+.income{color:#26965d}.expense{color:#e05c65}
+.delete{background:#fff0f0;color:#d34b54;padding:7px 10px;margin-left:7px}
+.empty{text-align:center;color:#aaa;padding:24px;font-size:13px}
+footer{text-align:center;color:#aaa;font-size:11px;margin-top:30px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <div>
+    <h1>💸 Pocketly</h1>
+    <div class="sub">Your money, your control.</div>
+  </div>
+  <div class="pill">✦ Personal finance</div>
+</header>
+
+<div class="card">
+  <small>YOUR CURRENT BALANCE</small>
+  <div class="balance" id="balance">₹0.00</div>
+  <div class="stats">
+    <div>↗ Total income<strong id="income">₹0</strong></div>
+    <div>↘ Total expenses<strong id="expenses">₹0</strong></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="heading">
+    <h2>✨ Smart savings</h2>
+    <span class="muted">20% rule</span>
+  </div>
+  <div class="savings">
+    <h3>🌱 Your recommended savings</h3>
+    <div class="amount" id="saving">₹0.00</div>
+    <p>Try saving 20% of your total income. Small savings today can make a difference tomorrow!</p>
+    <div class="bar"><span id="savingBar"></span></div>
+    <div class="savingrow">
+      <span>20% savings target</span>
+      <strong id="savingPercent">0%</strong>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="heading">
+    <h2>➕ Add transaction</h2>
+  </div>
+  <div class="box">
+    <div class="field">
+      <label>Transaction type</label>
+      <select id="type" onchange="updateCategory()">
+        <option value="income">💰 Income</option>
+        <option value="expense">🛍️ Expense</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Amount (₹)</label>
+      <input id="amount" type="number" min="0.01" step="0.01" placeholder="e.g. 500">
+    </div>
+    <div class="grid">
+      <div class="field">
+        <label>Category</label>
+        <select id="category">
+          <option>Pocket Money</option>
+          <option>Salary</option>
+          <option>Relatives</option>
+          <option>Other Income</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Date</label>
+        <input id="date" type="date">
+      </div>
+    </div>
+    <div class="field">
+      <label>Description (optional)</label>
+      <input id="description" placeholder="What was it for?">
+    </div>
+    <button class="full" onclick="addTransaction()">Add transaction ✨</button>
+  </div>
+</div>
+
+<div class="section">
+  <div class="heading">
+    <h2>📊 Transaction history</h2>
+    <span class="muted" id="count">0 records</span>
+  </div>
+  <div class="box" id="history">
+    <div class="empty">No transactions yet 🌸</div>
+  </div>
+</div>
+
+<footer>Made with 💜 for your financial journey.<br>Data is stored locally on this device.</footer>
+</div>
+
+<script>
+const KEY="pocketly_transactions_v1";
+let transactions=JSON.parse(localStorage.getItem(KEY)||"[]");
+
+const ₹=n=>"₹"+Number(n).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});
+
+document.getElementById("date").value=new Date().toISOString().slice(0,10);
+
+function updateCategory(){
+ const type=document.getElementById("type").value;
+ const cat=document.getElementById("category");
+ cat.innerHTML=type==="income"
+ ? `<option>Pocket Money</option><option>Salary</option><option>Relatives</option><option>Other Income</option>`
+ : `<option>Food</option><option>Shopping</option><option>Travel</option><option>Education</option><option>Entertainment</option><option>Other Expense</option>`;
+}
+
+function addTransaction(){
+ const type=document.getElementById("type").value;
+ const amount=Number(document.getElementById("amount").value);
+ const category=document.getElementById("category").value;
+ const date=document.getElementById("date").value;
+ const description=document.getElementById("description").value.trim();
+
+ if(!Number.isFinite(amount)||amount<=0||!date){
+  alert("Please enter a valid amount and date.");
+  return;
+ }
+
+ transactions.unshift({
+  id:crypto.randomUUID(),
+  type,amount,category,date,description
+ });
+
+ save();
+ document.getElementById("amount").value="";
+ document.getElementById("description").value="";
+ render();
+}
+
+function save(){
+ localStorage.setItem(KEY,JSON.stringify(transactions));
+}
+
+function removeTransaction(id){
+ if(!confirm("Delete this transaction?"))return;
+ transactions=transactions.filter(t=>t.id!==id);
+ save();
+ render();
+}
+
+function render(){
+ const income=transactions.filter(t=>t.type==="income").reduce((s,t)=>s+t.amount,0);
+ const expenses=transactions.filter(t=>t.type==="expense").reduce((s,t)=>s+t.amount,0);
+ const balance=income-expenses;
+ const target=income*.20;
+
+ document.getElementById("balance").textContent=₹(balance);
+ document.getElementById("income").textContent=₹(income);
+ document.getElementById("expenses").textContent=₹(expenses);
+ document.getElementById("saving").textContent=₹(target);
+
+ // Savings recommendation is 20% of income, not actual money set aside.
+ const actualSavings=Math.max(0,balance);
+ const progress=target>0?Math.min(100,actualSavings/target*100):0;
+ document.getElementById("savingBar").style.width=progress+"%";
+ document.getElementById("savingPercent").textContent=progress.toFixed(0)+"%";
+
+ document.getElementById("count").textContent=transactions.length+" records";
+
+ const history=document.getElementById("history");
+ if(!transactions.length){
+  history.innerHTML='<div class="empty">No transactions yet 🌸</div>';
+  return;
+ }
+
+ const icons={
+  "Pocket Money":"👛","Salary":"💼","Relatives":"🎁",
+  "Other Income":"💰","Food":"🍕","Shopping":"🛍️",
+  "Travel":"🚗","Education":"📚","Entertainment":"🎮",
+  "Other Expense":"✨"
+ };
+
+ history.innerHTML=transactions.map(t=>`
+ <div class="history-item">
+  <div class="item-left">
+   <div class="emoji">${icons[t.category]||"💳"}</div>
+   <div>
+    <strong>${escapeHTML(t.description||t.category)}</strong>
+    <small>${escapeHTML(t.category)} · ${escapeHTML(t.date)}</small>
+   </div>
+  </div>
+  <div style="text-align:right">
+   <span class="money ${t.type==="income"?"income":"expense"}">
+    ${t.type==="income"?"+":"-"}${₹(t.amount)}
+   </span>
+   <br><button class="delete" onclick="removeTransaction('${t.id}')">✕</button>
+  </div>
+ </div>`).join("");
+}
+
+function escapeHTML(s){
+ return String(s).replace(/[&<>"']/g,c=>({
+  "&":"&amp;","<":"&lt;",">":"&gt;",
+  '"':"&quot;","'":"&#39;"
+ })[c]);
+}
+
+render();
+</script>
+</body>
+</html>
